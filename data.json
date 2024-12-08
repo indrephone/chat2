@@ -1,0 +1,68 @@
+{
+    "users": 
+    [
+      {
+          "_id": "417a3b81-b9b9-4bf8-8d68-3a354170fdd1",
+          "username": "user1",
+          "profileImage": "",
+          "password": "$2b$12$h7WNTAbLFEEwtEqXGic0rOhfOsBGnAn2hgEoMIZX9HIu7yPqTBXN6"
+      },
+      {
+          "_id": "55c9ae7b-cf7d-42bf-a712-ee82ee67eb87",
+          "username": "user2",
+          "profileImage": "",
+          "password": "$2b$12$zvObq/9SRYYCmOHuopjQBONoVVH4WF4dQS6lUGndQyTSCreJrGgJe"
+      },
+      {
+          "_id": "74d0b776-5ce5-42a0-8155-61d3d028a8b9",
+          "username": "user3",
+          "profileImage": "",
+          "password": "$2b$12$Ib9Yhfbw9zOJUhu8bl3ynurqNUlVIzJsJyjkGDdsHCW8LhYaDZZaO"
+      }
+    ],
+    "conversations": [
+      {
+        "_id": "31ddee9e-0774-4c08-85cc-ffd799451c51",
+        "convUsers": [
+          "417a3b81-b9b9-4bf8-8d68-3a354170fdd1",
+          "55c9ae7b-cf7d-42bf-a712-ee82ee67eb87"
+        ]
+       ,
+        "lastRead": {
+          "417a3b81-b9b9-4bf8-8d68-3a354170fdd1": "f48fc954-20cb-4f48-bb6c-8393c8cb3538",
+          "55c9ae7b-cf7d-42bf-a712-ee82ee67eb87": "f48fc954-20cb-4f48-bb6c-8393c8cb3538"
+        }
+      },
+      {
+        "_id": "520d7ab0-02ee-4030-b12c-0a6ac7a0d23d",
+        "convUsers": [
+          "55c9ae7b-cf7d-42bf-a712-ee82ee67eb87",
+          "74d0b776-5ce5-42a0-8155-61d3d028a8b9"
+        ]
+       ,
+        "lastRead": {
+          "55c9ae7b-cf7d-42bf-a712-ee82ee67eb87": "b7012209-eb49-47f0-b153-28608aea1da1",
+          "74d0b776-5ce5-42a0-8155-61d3d028a8b9": "b7012209-eb49-47f0-b153-28608aea1da1"
+        }
+      }
+    ],  
+    "messages": [
+      {
+        "_id": "f48fc954-20cb-4f48-bb6c-8393c8cb3538",
+        "conversationId": "31ddee9e-0774-4c08-85cc-ffd799451c51",
+        "userId": "417a3b81-b9b9-4bf8-8d68-3a354170fdd1",
+        "content": "Hello from user1 to user2",
+        "timestamp": "2024-10-24T05:43:28.029233",
+        "likedUserIds": ["55c9ae7b-cf7d-42bf-a712-ee82ee67eb87"]
+      },
+      {
+        "_id": "b7012209-eb49-47f0-b153-28608aea1da1",
+        "conversationId": "520d7ab0-02ee-4030-b12c-0a6ac7a0d23d",
+        "userId": "55c9ae7b-cf7d-42bf-a712-ee82ee67eb87",
+        "content": "Hello from user2 to user3",
+        "timestamp": "2024-10-24T05:43:28.029266",
+        "likedUserIds": ["74d0b776-5ce5-42a0-8155-61d3d028a8b9"]
+      }
+    ]
+  }
+  
