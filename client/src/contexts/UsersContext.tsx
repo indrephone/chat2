@@ -1,6 +1,6 @@
-import { createContext, useReducer, useEffect, useState, ReactElement } from "react";
+import { createContext, useReducer, useEffect, useState, ReactNode } from "react";
 
-type ChildrenType = { children: ReactElement};
+type ChildrenType = { children: ReactNode}; // Changed ReactElement to ReactNode for broader compatibility
 export type UserType = {
     _id: string,
     username: string,
@@ -8,10 +8,8 @@ export type UserType = {
     password: string
 }
 type ReducerActionTypes =
-{ type: "setData", data: UserType[]} |
-{ type: "addNewUser", newUser: UserType} |
-// { type: "editUser", data: Omit<UserType, '_id'>; id: string};
-{ type: "editUser"; updatedUser: UserType };
+{ type: "getAll", allUsers: UserType[]} |
+{ type: "addNewUser", newUser: UserType} 
 
 
 export type ContextTypes = {
@@ -19,91 +17,70 @@ export type ContextTypes = {
     addNewUser: (newUser: UserType) => void; // Function to add a new user
     loggedInUser: UserType | null; // The currently logged-in user
     logInUser: (user: UserType) => void; // Function to log in a user
-    logOutUser: () => void; // Function to log out the current user
-    editSpecificUser: (userId: string, updatedUser: Partial<UserType>) => void; // Function to edit a user
-    returnSpecificUser: (userId: string) => UserType | null; // Function to retrieve a specific user
+    getSpecificUser: (userId: string) => UserType | null; // Function to retrieve a specific user
   };
 
-const reducer = (state: UserType[], action: ReducerActionTypes) => {
+const UsersContext = createContext<ContextTypes | undefined>(undefined);
+
+const reducer = (state: UserType[], action: ReducerActionTypes): UserType[] => {
     switch(action.type){
-        case 'setData':
-            return action.data;
+        case 'getAll':
+            return action.allUsers;
         case 'addNewUser':
-            return [...state, action.newUser];
+            return [...state, action.newUser]; // Removed fetch as reducers should be pure
         default:
             return state;        
     }
 } 
 
-const UsersContext = createContext<ContextTypes | undefined>(undefined);
 const UsersProvider = ({ children }: ChildrenType) => {
 
     const [loggedInUser, setLoggedInUser] = useState<UserType|null>(null);
-    const logInUser = (user:UserType) => {
-        setLoggedInUser(user);
-    }
-    const logOutUser = () => {
-        setLoggedInUser(null);
-    }
 
     const [users, dispatch] = useReducer(reducer, []);
-    const addNewUser = (newUser: UserType) => {
-        fetch(`http://localhost:5173/users`, {
+
+    const addNewUser = async (newUser: UserType) => {
+        try {
+          await fetch("http://localhost:5173/users", {
             method: "POST",
             headers: {
-               "Content-Type":"application/json" 
+              "Content-Type": "application/json",
             },
-            body: JSON.stringify(newUser)
-        })
-        dispatch({
-            type: "addNewUser",
-            newUser: newUser
-        })
-    };
+            body: JSON.stringify(newUser),
+          });
+          dispatch({ type: "addNewUser", newUser });
+        } catch (error) {
+          console.error("Failed to add new user:", error);
+        }
+      };
 
-    const editSpecificUser = (userId: string, updatedUser: Partial<UserType>) => {
-        const updatedUserData = { ...returnSpecificUser(userId), ...updatedUser };
-        fetch(`http://localhost:5173/users/${userId}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(updatedUserData),
-        }).then(() =>
-            dispatch({
-                type: "editUser",
-                updatedUser: updatedUserData as UserType,
-            })
-        );
-    };
+
+
+
+     const getSpecificUser = (_id: string): UserType | null => users.find((user) => user._id === _id) || null;
     
 
-
-    const returnSpecificUser = (userId: string): UserType | null => {
-        const user = users.find((user) => user._id === userId);
-        return user || null;
-    };
-    
-
-    useEffect(()=>{
-        fetch(`http://localhost:5173/users`)
-         .then(res => res.json())
-         .then(data => dispatch({
-            type: 'setData',
-            data: data
-         }))
-    }, []);
+     useEffect(() => {
+        const fetchUsers = async () => {
+          try {
+            const response = await fetch("http://localhost:5173/users");
+            const data = await response.json();
+            dispatch({ type: "getAll", allUsers: data });
+          } catch (error) {
+            console.error("Failed to fetch users:", error);
+          }
+        };
+        fetchUsers();
+      }, []);
   
     return (
         <UsersContext.Provider
           value={{
             users,
-            logInUser,
-            logOutUser,
-            loggedInUser,
             addNewUser,
-            returnSpecificUser,
-            editSpecificUser
+            loggedInUser,
+            logInUser: setLoggedInUser,
+            getSpecificUser,
           }}
         >
         {children}</UsersContext.Provider>
