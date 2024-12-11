@@ -42,7 +42,7 @@ const UsersProvider = ({ children }: ChildrenType) => {
 
     const addNewUser = async (user: Omit<UserType, "_id">): Promise<ErrorOrSuccessReturn> => {
       try{
-        const response = await fetch("http://localhost:5173/users", {
+        const response = await fetch("http://localhost:5500/users", {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify(user),
@@ -73,21 +73,21 @@ const UsersProvider = ({ children }: ChildrenType) => {
       const logUserIn = async (userLoginInfo: Pick<UserType, 'username' | 'password'>): Promise<ErrorOrSuccessReturn> => {
         try {
           // console.log(userLoginInfo);
-          const res = await fetch(`http://localhost:5173/users`, {
+          const res = await fetch(`http://localhost:5500/login`, {
             method: "POST",
             headers: {
               "Content-Type":"application/json"
             },
             body: JSON.stringify(userLoginInfo)
           });
-          // console.log(res);
+          console.log(res);
           if(res.status === 401){ // neteisingos prisijungimo įvestys
             const error = await res.json();
             // console.log(error);
             return error;
           } else { // teisingos prisijungimo įvestys
             const data = await res.json();
-            // console.log(data);
+            console.log(data);
             setLoggedInUser(data);
             return { success: 'Prisijungimas sėkmingas. Tuoj būsite nukelti į Home puslapį.' }
           }
@@ -107,7 +107,7 @@ const UsersProvider = ({ children }: ChildrenType) => {
      useEffect(() => {
         const fetchUsers = async () => {
           try {
-            const response = await fetch("http://localhost:5173/users");
+            const response = await fetch("http://localhost:5500/users");
             const data = await response.json();
             setUsers({ type: "getAll", allUsers: data });
           } catch (error) {

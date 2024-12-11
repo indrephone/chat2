@@ -36,7 +36,7 @@ const RegisterForm = () => {
         .required("Field must be filled"),
     }),
     onSubmit: async (values) => {
-  console.log(values)
+       console.log(values)
       const registerResponse = await addNewUser ({
         username: values.username,
         profileImage: values.profileImage,
