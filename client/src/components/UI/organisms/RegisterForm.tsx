@@ -1,13 +1,13 @@
 import { useFormik } from "formik";
 import { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import UsersContext, { ContextTypes, NewUserType  } from "../../../contexts/UsersContext";
+import UsersContext, { UsersContextTypes,  } from "../../../contexts/UsersContext";
 import * as Yup from "yup";
 
 
 const RegisterForm = () => {
-  const { users, addNewUser, setLoggedInUser } = useContext(UsersContext) as ContextTypes;
-  const [registerError, setRegisterError] = useState<string | null>(null);
+  const { addNewUser } = useContext(UsersContext) as UsersContextTypes;
+  const [registerMessage, setRegisterMessage] = useState('');
   const navigate = useNavigate();
 
   const formik = useFormik({
@@ -37,29 +37,29 @@ const RegisterForm = () => {
     }),
     onSubmit: async (values) => {
   console.log(values)
-      const newUser: NewUserType = {
+      const registerResponse = await addNewUser ({
         username: values.username,
-        profileImage: values.profileImage || null,
+        profileImage: values.profileImage,
         password: values.password,
-      };
-
-      if (users.some((user) => user.username === newUser.username)) {
-        setRegisterError("User with this username already exists.");
-        return;
-      }
-
-      const createdUser = await addNewUser(newUser);
-      setLoggedInUser(createdUser);
-
-      navigate("/");
-    },
+      });
+     // Type Guard - tikrina ar raktinis zodis "error" yra RegisterResponse objekto viduje t.y. emailas arba useris jau jau panaudotas
+      if ("error" in registerResponse){
+        setRegisterMessage(registerResponse.error);
+         console.log(registerResponse)
+      }else {
+        console.log(registerResponse)
+        setRegisterMessage(registerResponse.success);
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+       }
+     }
   });
 
   return (
     <section>
       <form onSubmit={formik.handleSubmit}>
         <div>
-          <label htmlFor="username">User name:</label>
           <input
             type="text"
             name="username"
@@ -117,7 +117,7 @@ const RegisterForm = () => {
         </div>
         <input type="submit" value="Register" />
       </form>
-      {registerError && <p>Error: {registerError}</p>}
+      {registerMessage && <p> {registerMessage}</p>}
       <p>
         Already have an account? Go <Link to="/login">Login</Link>
       </p>

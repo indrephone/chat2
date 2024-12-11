@@ -8,55 +8,100 @@ export type UserType = {
     profileImage: string | null,
     password: string
 }
-export type NewUserType = Omit<UserType, "_id">;
 
 type ReducerActionTypes =
 { type: "getAll", allUsers: UserType[]} |
 { type: "addNewUser", newUser: UserType} 
 
-
-export type ContextTypes = {
+export type ErrorOrSuccessReturn = { error: string } | { success: string };
+export type UsersContextTypes = {
     users: UserType[]; // List of all users
-    setUsers: (action: ReducerActionTypes) => void; // Function to update users
+    addNewUser: (user: Omit<UserType, "_id">) => Promise<ErrorOrSuccessReturn>; // Function to add a new user
     loggedInUser: UserType | null; // The currently logged-in user
-    setLoggedInUser: (user: UserType | null) => void; // Function to set logged-in user
-    getSpecificUser: (userId: string) => UserType | null; // Function to retrieve a specific user
-    addNewUser: (newUser: NewUserType) => Promise<UserType>; // Function to add a new user
-  };
+    logUserIn: (userLoginInfo: Pick<UserType, "username" | "password">) => Promise<ErrorOrSuccessReturn>,
+    logout: () => void
+  }
 
-const UsersContext = createContext<ContextTypes | undefined>(undefined);
+
 
 const reducer = (state: UserType[], action: ReducerActionTypes): UserType[] => {
     switch(action.type){
         case 'getAll':
             return action.allUsers;
         case 'addNewUser':
-            return [...state, action.newUser]; // Removed fetch as reducers should be pure
+            return [...state, action.newUser]; 
         default:
             return state;        
     }
 } 
-
+const UsersContext = createContext<UsersContextTypes | undefined>(undefined);
 const UsersProvider = ({ children }: ChildrenType) => {
 
-    const [loggedInUser, setLoggedInUser] = useState<UserType|null>(null);
-    const [users, setUsers] = useReducer(reducer, []);
+  const [users, setUsers] = useReducer(reducer, []);
+  const [loggedInUser, setLoggedInUser] = useState<UserType|null>(null);
 
-    const addNewUser = async (newUser: NewUserType): Promise<UserType> => {
+    const addNewUser = async (user: Omit<UserType, "_id">): Promise<ErrorOrSuccessReturn> => {
+      try{
         const response = await fetch("http://localhost:5173/users", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newUser),
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(user),
         });
-        const createdUser: UserType = await response.json();
-        setUsers({ type: "addNewUser", newUser: createdUser });
-        return createdUser;
+         // console.log(res); // res su status ir kitais
+      if(response.status === 409){ // vartotojas įvedė panaudotą username arba email
+        const errMsg = await response.json();
+        // console.log(errMsg, 'error');
+        return errMsg;
+      } else {
+        const data = await response.json();
+        // console.log(data, 'sekme');
+        setUsers({
+          type: 'addNewUser',
+          newUser: data
+        });
+        setLoggedInUser(data);
+        return { success: 'Sėkmingai prisiregistruota' };
+      }
+    } catch(err) {
+      console.error(err);
+      return { error: 'Bandant atsiūsti duomenis, įvyko serverio klaida. Prašome bandyti vėliau.' };
+    } 
       };
       
 
-     const getSpecificUser = (_id: string): UserType | null => users.find((user) => user._id === _id) || null;
+
+      const logUserIn = async (userLoginInfo: Pick<UserType, 'username' | 'password'>): Promise<ErrorOrSuccessReturn> => {
+        try {
+          // console.log(userLoginInfo);
+          const res = await fetch(`http://localhost:5173/users`, {
+            method: "POST",
+            headers: {
+              "Content-Type":"application/json"
+            },
+            body: JSON.stringify(userLoginInfo)
+          });
+          // console.log(res);
+          if(res.status === 401){ // neteisingos prisijungimo įvestys
+            const error = await res.json();
+            // console.log(error);
+            return error;
+          } else { // teisingos prisijungimo įvestys
+            const data = await res.json();
+            // console.log(data);
+            setLoggedInUser(data);
+            return { success: 'Prisijungimas sėkmingas. Tuoj būsite nukelti į Home puslapį.' }
+          }
+        } catch(err) {
+          console.error(err);
+          return { error: 'Bandant prisijungti, įvyko serverio klaida. Prašome bandyti vėliau.' };
+        }
+      }
+      
+      const logout = () => {
+        setLoggedInUser(null);
+        localStorage.removeItem('savedUserInfo');
+      }  
+    //  const getSpecificUser = (_id: string): UserType | null => users.find((user) => user._id === _id) || null;
     
 
      useEffect(() => {
@@ -76,12 +121,11 @@ const UsersProvider = ({ children }: ChildrenType) => {
         <UsersContext.Provider
           value={{
             users,
-            setUsers,
-            loggedInUser,
-            setLoggedInUser,
             addNewUser,
-            getSpecificUser
-          }}
+            loggedInUser,
+            logUserIn,
+            logout
+             }}
         >
         {children}</UsersContext.Provider>
     )
