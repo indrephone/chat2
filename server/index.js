@@ -92,22 +92,49 @@ app.post('/users', checkUniqueUser, async (req, res) => {
   });
 
 // separate route for login
-  app.post('/login', async (req, res) => {
+//   app.post('/login', async (req, res) => {
+//     const client = await MongoClient.connect(DB_CONNECTION);
+//     try {
+//       const db = client.db('real_chat');
+//       const user = await db.collection('users').findOne({ username: req.body.username });
+      
+//       if (!user || !bcrypt.compareSync(req.body.password, user.password)) {
+//         return res.status(401).json({ errorMessage: 'Invalid username or password' });
+//       }
+  
+//       res.status(200).json(user); // Send back user details (without password)
+//     } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ error: 'Server error' });
+//     } finally {
+//       client.close();
+//     }
+//   });
+
+// get, kuris grąžina vieną specific pagal email+password
+app.post('/login', async (req, res) => {
     const client = await MongoClient.connect(DB_CONNECTION);
     try {
-      const db = client.db('real_chat');
-      const user = await db.collection('users').findOne({ username: req.body.username });
-      
-      if (!user || !bcrypt.compareSync(req.body.password, user.password)) {
-        return res.status(401).json({ errorMessage: 'Invalid username or password' });
+      // console.log(req.body);
+      const data = await client.db('real_chat').collection('users').findOne({ username: req.body.username });
+      // console.log(data);
+      if(data === null){ // netinkamas username
+        res.status(401).send({ error: 'Vartotojas su tokiu username arba/ir password neegzsituoja.' });
+      } else { // buvo surastas pagal username
+        const passCheck = bcrypt.compareSync(req.body.password, data.password);
+        // console.log(passCheck);
+        if(passCheck === false){ // tinkamas username, bet netinkamas password
+          res.status(401).send({ error: 'Vartotojas su tokiu username arba/ir password neegzsituoja.' });
+        } else { // tinkamas email ir password
+          res.send(data);
+        }
       }
-  
-      res.status(200).json(user); // Send back user details (without password)
-    } catch (err) {
+    } catch(err) {
       console.error(err);
-      res.status(500).json({ error: 'Server error' });
+      res.status(500).send({ error: err });
     } finally {
-      client.close();
+      // jei client vis dar gyvas
+      client?.close(); // nutraukia BackEnd'o ryšį su DB
     }
   });
   
