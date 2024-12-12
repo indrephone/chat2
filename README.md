@@ -8,6 +8,7 @@ This is a full-stack chat app built with a MERN (MongoDB, Express, React, NodeJS
 
 - [MERN Chat App](#chat2)
   - [Table of Contents](#table-of-contents)
+  - [Features](#features)
   - [Prerequisites](#prerequisites)
   - [Cloning the Project](#cloning-the-project)
   - [Frontend (Client) Setup](#frontend-client-setup)
@@ -16,6 +17,19 @@ This is a full-stack chat app built with a MERN (MongoDB, Express, React, NodeJS
   - [Running the Application](#running-the-application)
   - [Scripts](#scripts)
   - [License](#license)
+
+---
+
+## Features
+
+- User Registration and Login
+- Profile Management (Update username, password, and profile picture)
+- View all users
+- Start conversations with other users
+- Send and receive messages
+- Like messages
+- View recent conversations
+- Delete conversations
 
 ---
 
