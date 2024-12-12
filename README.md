@@ -102,7 +102,7 @@ After cloning the repository, follow the setup instructions below for both the f
 4. Change the provided `.env.example` file to `.env` and update it with your configuration details:
 
    ```ini
-   SERVER_PORT=5001
+   SERVER_PORT=5500
    CLIENT_PORT=5173
    DB_USER=<your_db_username>
    DB_PASSWORD=<your_db_password>
