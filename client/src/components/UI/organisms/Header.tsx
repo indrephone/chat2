@@ -13,17 +13,7 @@ const IconContainer = styled.div`
   display: inline-block;
 `;
 
-// const Badge = styled.span`
-// position: absolute;
-//   top: -5px;
-//   right: -5px;
-//   background-color: red;
-//   color: white;
-//   border-radius: 50%;
-//   padding: 2px 6px;
-//   font-size: 12px;
-//   z-index: 1;
-// `;
+
 
 const Header = () => {
   const { loggedInUser, logout } = useContext(UsersContext) as UsersContextTypes;
@@ -63,9 +53,9 @@ const Header = () => {
           />
           </NavLink> 
           
-          <NavLink to={`/edit-user/${loggedInUser._id}`} className="username-link">
+          {/* <NavLink to={`/edit-user/${loggedInUser._id}`} className="username-link">
             {loggedInUser.username}
-          </NavLink>
+          </NavLink> */}
 
            
           <button

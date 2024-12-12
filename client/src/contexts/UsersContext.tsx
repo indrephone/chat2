@@ -22,8 +22,6 @@ export type UsersContextTypes = {
     logout: () => void
   }
 
-
-
 const reducer = (state: UserType[], action: ReducerActionTypes): UserType[] => {
     switch(action.type){
         case 'getAll':
@@ -89,7 +87,7 @@ const UsersProvider = ({ children }: ChildrenType) => {
             const data = await res.json();
             console.log(data);
             setLoggedInUser(data);
-            return { success: 'Prisijungimas sėkmingas. Tuoj būsite nukelti į Home puslapį.' }
+            return { success: 'Prisijungimas sėkmingas. Tuoj būsite nukelti į Profile puslapį.' }
           }
         } catch(err) {
           console.error(err);
@@ -99,7 +97,6 @@ const UsersProvider = ({ children }: ChildrenType) => {
       
       const logout = () => {
         setLoggedInUser(null);
-        localStorage.removeItem('savedUserInfo');
       }  
     //  const getSpecificUser = (_id: string): UserType | null => users.find((user) => user._id === _id) || null;
     

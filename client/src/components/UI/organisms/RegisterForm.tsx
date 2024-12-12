@@ -50,7 +50,7 @@ const RegisterForm = () => {
         console.log(registerResponse)
         setRegisterMessage(registerResponse.success);
         setTimeout(() => {
-          navigate('/');
+          navigate('/profile');
         }, 2000);
        }
      }
