@@ -32,46 +32,35 @@ app.get('/users', async (req, res) => {
     }
   });
 
-//   app.post('/users', (req, res) => {
-//     console.log('POST /users hit');
-//     res.send('Route works!');
-//   });
+
 // post, sukuriant naują
-const checkUniqueUser = async (req, res, next) => {
-    const client = await MongoClient.connect(DB_CONNECTION);
-    try {
-      const db = client.db('real_chat');
-  
-      // Check for duplicate username
-      const sameUsername = await db.collection('users').findOne({ username: req.body.username });
-      if (sameUsername) {
-        return res.status(409).send({ errorMessage: 'A user with the same username or password already exists.' });
-      }
-  
-      // Check for duplicate password
-      const users = await db.collection('users').find().toArray(); // Fetch all users
-      const isPasswordDuplicate = users.some(user =>
-        bcrypt.compareSync(req.body.password, user.password) // Compare hashed passwords
-      );
-  
-      if (isPasswordDuplicate) {
-        return res.status(409).send({ errorMessage: 'A user with the same username password already exists.' });
-      }
-  
-      // If no duplicates, proceed to the next middleware
-      next();
-    } catch (err) {
-      console.error(err);
-      res.status(500).send({ error: err });
-    } finally {
-      // Close the database connection
-      client?.close();
+const checkUniqueUsername = async (req, res, next) => {
+  const client = await MongoClient.connect(DB_CONNECTION);
+  try {
+    const { username } = req.body;
+    const { id } = req.params;
+
+    const db = client.db('real_chat');
+    const user = await db.collection('users').findOne({ username });
+
+    // Check if the username already exists and is not the current user's username
+    if (user && user._id !== id) {
+      return res.status(409).send({ errorMessage: 'Username already taken.' });
     }
-  };
-  
+
+    // If no duplicates, proceed to the next middleware
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: err });
+  } finally {
+    client?.close();
+  }
+};
+
   
 // kurti naują vartotoją jeigu unikalus
-app.post('/users', checkUniqueUser, async (req, res) => {
+app.post('/users', checkUniqueUsername, async (req, res) => {
     const client = await MongoClient.connect(DB_CONNECTION);
     try {
       // console.log('req body', req.body);
@@ -91,28 +80,8 @@ app.post('/users', checkUniqueUser, async (req, res) => {
     }
   });
 
-// separate route for login
-//   app.post('/login', async (req, res) => {
-//     const client = await MongoClient.connect(DB_CONNECTION);
-//     try {
-//       const db = client.db('real_chat');
-//       const user = await db.collection('users').findOne({ username: req.body.username });
-      
-//       if (!user || !bcrypt.compareSync(req.body.password, user.password)) {
-//         return res.status(401).json({ errorMessage: 'Invalid username or password' });
-//       }
-  
-//       res.status(200).json(user); // Send back user details (without password)
-//     } catch (err) {
-//       console.error(err);
-//       res.status(500).json({ error: 'Server error' });
-//     } finally {
-//       client.close();
-//     }
-//   });
-
 // get, kuris grąžina vieną specific pagal email+password
-app.post('/login', async (req, res) => {
+app.post('/users/login', async (req, res) => {
     const client = await MongoClient.connect(DB_CONNECTION);
     try {
       // console.log(req.body);
@@ -137,4 +106,98 @@ app.post('/login', async (req, res) => {
       client?.close(); // nutraukia BackEnd'o ryšį su DB
     }
   });
+  
+  // update username
+  app.patch('/users/:id/username', checkUniqueUsername, async (req, res) => {
+    const client = await MongoClient.connect(DB_CONNECTION);
+    try {
+      const { id } = req.params;
+      const { username } = req.body;
+      const db = client.db('real_chat');
+  
+      // Check if the user exists
+      const user = await db.collection('users').findOne({ _id: id });
+      if (!user) {
+        return res.status(404).send({ error: 'User not found' });
+      }
+  
+      // Update the username
+      await db.collection('users').updateOne(
+        { _id: id },
+        { $set: { username } }
+      );
+  
+      res.send({ success: 'Username updated successfully' });
+    } catch (err) {
+      res.status(500).send({ error: err.message });
+    } finally {
+      client?.close();
+    }
+  });
+  
+  // update profileImage
+  app.patch('/users/:id/profileImage', async (req, res) => {
+    const client = await MongoClient.connect(DB_CONNECTION);
+    try {
+      const { id } = req.params;
+      const { profileImage } = req.body;
+      const db = client.db('real_chat');
+  
+      // Check if the user exists
+      const user = await db.collection('users').findOne({ _id: id });
+      if (!user) {
+        return res.status(404).send({ error: 'User not found' });
+      }
+  
+      // Default image URL
+      const defaultProfileImage = "/default_profile_image.svg";
+  
+      // Update the user's profile image
+      await db.collection('users').updateOne(
+        { _id: id },
+        { $set: { profileImage: profileImage || defaultProfileImage } }
+      );
+  
+      res.send({ success: 'Profile image updated successfully' });
+    } catch (err) {
+      res.status(500).send({ error: err.message });
+    } finally {
+      client?.close();
+    }
+  });
+    
+  
+// update password
+app.patch('/users/:id/password', async (req, res) => {
+  const client = await MongoClient.connect(DB_CONNECTION);
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.trim() === "") {
+      return res.status(400).send({ error: "Password cannot be empty." });
+    }
+
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const db = client.db('real_chat');
+
+    // Check if the user exists
+    const user = await db.collection('users').findOne({ _id: id });
+    if (!user) {
+      return res.status(404).send({ error: "User not found" });
+    }
+
+    // Update the password
+    await db.collection('users').updateOne(
+      { _id: id },
+      { $set: { password: hashedPassword } }
+    );
+
+    res.send({ success: "Password updated successfully" });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  } finally {
+    client?.close();
+  }
+});
   

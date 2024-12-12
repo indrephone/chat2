@@ -18,8 +18,10 @@ export type UsersContextTypes = {
     users: UserType[]; // List of all users
     addNewUser: (user: Omit<UserType, "_id">) => Promise<ErrorOrSuccessReturn>; // Function to add a new user
     loggedInUser: UserType | null; // The currently logged-in user
-    logUserIn: (userLoginInfo: Pick<UserType, "username" | "password">) => Promise<ErrorOrSuccessReturn>,
-    logout: () => void
+    logUserIn: (userLoginInfo: Pick<UserType, "username" | "password">) => Promise<ErrorOrSuccessReturn>;
+    logout: () => void;
+    setUsers: React.Dispatch<ReducerActionTypes>;
+    setLoggedInUser: React.Dispatch<React.SetStateAction<UserType | null>>;
   }
 
 const reducer = (state: UserType[], action: ReducerActionTypes): UserType[] => {
@@ -71,7 +73,7 @@ const UsersProvider = ({ children }: ChildrenType) => {
       const logUserIn = async (userLoginInfo: Pick<UserType, 'username' | 'password'>): Promise<ErrorOrSuccessReturn> => {
         try {
           // console.log(userLoginInfo);
-          const res = await fetch(`http://localhost:5500/login`, {
+          const res = await fetch(`http://localhost:5500/users/login`, {
             method: "POST",
             headers: {
               "Content-Type":"application/json"
@@ -121,7 +123,9 @@ const UsersProvider = ({ children }: ChildrenType) => {
             addNewUser,
             loggedInUser,
             logUserIn,
-            logout
+            logout,
+            setUsers,
+            setLoggedInUser,
              }}
         >
         {children}</UsersContext.Provider>

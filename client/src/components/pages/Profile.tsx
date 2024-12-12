@@ -1,17 +1,23 @@
-import { useContext} from 'react';
+import { useContext, useEffect} from 'react';
 import { useNavigate } from "react-router-dom";
 
 import { StyledSection } from '../styles/GeneralStyles';
 import Heading from "../UI/atoms/Heading";
+import EditForm from '../UI/organisms/EditForm';
 import UsersContext,{ UsersContextTypes } from '../../contexts/UsersContext';
+
 
 const Profile = () => {
     const { loggedInUser } = useContext(UsersContext) as UsersContextTypes; 
-    const navigate = useNavigate();  
+    const navigate = useNavigate(); 
+    
+    useEffect(() => {
+      if (!loggedInUser) {
+        navigate("/login");
+      }
+    }, [loggedInUser, navigate]); // Dependency ensures navigation triggers only when loggedInUser changes
 
     if (!loggedInUser) {
-        // Redirect to login page if not logged in
-        navigate("/login");
         return null; // Prevent rendering until navigation completes
       }
 
@@ -25,6 +31,8 @@ const Profile = () => {
             <img 
                src={loggedInUser.profileImage || "/default_profile_image.svg"} 
                alt={`${loggedInUser.username}'s profile`} />
+
+           <EditForm />
         </StyledSection>
      );
 }
