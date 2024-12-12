@@ -2,6 +2,7 @@ import { Routes, Route} from 'react-router-dom';
 import BaseOutlet from './components/outlets/BaseOutlet';
 import Register from './components/pages/Register';
 import Login from './components/pages/Login';
+import Profile from './components/pages/Profile';
 
 const App = () => {
    
@@ -11,8 +12,10 @@ const App = () => {
     <Route path="/login" element={<Login />}/> 
     <Route path="/register" element={<Register />}/>  
 
-     <Route path='/' element={ <BaseOutlet/>}></Route>
-     
+     <Route path='' element={ <BaseOutlet/>}>
+     <Route path="/profile" element={<Profile />} />
+     </Route>
+
     </Routes>
   )
 }

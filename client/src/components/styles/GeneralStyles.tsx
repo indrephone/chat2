@@ -8,7 +8,7 @@ export const StyledSection = styled.section`
    padding: 20px;;
    min-height: 100vh;
 `;
-
+// svytintis uzrasas
 export const StyledHeading = styled.h1`
    font-family: 'Poppins', sans-serif;
    font-weight: 200; 
